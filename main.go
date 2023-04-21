@@ -14,11 +14,11 @@ import (
 	"github.com/mitchellh/colorstring"
 )
 
-func fetchParametersByPath(path string) ([]*ssm.Parameter, error) {
+func fetchParametersByPath(path string, region string) ([]*ssm.Parameter, error) {
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Profile: "default",
 		Config: aws.Config{
-			Region: aws.String("ap-northeast-1"),
+			Region: aws.String(region),
 		},
 	})
 	if err != nil {
@@ -55,11 +55,13 @@ func trimPath(path string) string {
 func compParametersAction(c *cli.Context) error {
 	tPath := c.String("target")
 	bPath := c.String("base")
-	tParams, err := fetchParametersByPath(tPath)
+	region := c.String("region")
+
+	tParams, err := fetchParametersByPath(tPath, region)
 	if err != nil {
 		return err
 	}
-	bParams, err := fetchParametersByPath(bPath)
+	bParams, err := fetchParametersByPath(bPath, region)
 	if err != nil {
 		return err
 	}
@@ -85,7 +87,9 @@ func compParametersAction(c *cli.Context) error {
 
 func showParametersAction(c *cli.Context) error {
 	path := c.String("path")
-	params, err := fetchParametersByPath(path)
+	region := c.String("region")
+
+	params, err := fetchParametersByPath(path, region)
 	if err != nil {
 		return err
 	}
@@ -104,6 +108,7 @@ func main() {
 	app.Name = "paramstore"
 	app.Usage = "paramstore is a command line tool for AWS Parameter Store"
 	app.Action = showParametersAction
+	defaultRegion := "us-west-1"
 	app.Commands = []*cli.Command{
 		{
 			Name: "show",
@@ -114,6 +119,11 @@ func main() {
 					Name: "path, p",
 					Usage: "path to show like /service/development_3rd/",
 					Value: "",
+				},
+				&cli.StringFlag{
+					Name: "region, r",
+					Usage: "aws region",
+					Value: defaultRegion,
 				},
 			},
 		},
@@ -131,6 +141,11 @@ func main() {
 					Name: "base, b",
 					Usage: "base path to compare like /service/development_3rd/",
 					Value: "",
+				},
+				&cli.StringFlag{
+					Name: "region, r",
+					Usage: "aws region",
+					Value: defaultRegion,
 				},
 			},
 		},
