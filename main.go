@@ -29,12 +29,13 @@ func fetchParametersByPath(path string, region string) ([]Secret, error) {
 		return nil, err
 	}
 
-	withDecryption := true
 	p := ssm.NewGetParametersByPathPaginator(ssm.NewFromConfig(cfg), &ssm.GetParametersByPathInput{
-		Path:           &path,
+		Path:           aws.String(path),
 		MaxResults:     aws.Int32(10),
-		WithDecryption: &withDecryption,
+		WithDecryption: aws.Bool(true),
+		Recursive:      aws.Bool(true),
 	})
+
 	for p.HasMorePages() {
 		params, err := p.NextPage(ctx)
 		if err != nil {
@@ -104,6 +105,7 @@ func showParametersAction(c *cli.Context) error {
 
 	params, err := fetchParametersByPath(path, region)
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 
@@ -131,7 +133,7 @@ func main() {
 				&cli.StringFlag{
 					Name:  "path, p",
 					Usage: "path to show like /service/development_3rd/",
-					Value: "",
+					Value: "/",
 				},
 				&cli.StringFlag{
 					Name:  "region, r",
