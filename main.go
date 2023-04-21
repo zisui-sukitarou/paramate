@@ -30,6 +30,7 @@ func fetchParametersByPath(path string, region string) ([]*ssm.Parameter, error)
 		Path:           aws.String(path),
 		Recursive:      aws.Bool(true),
 		WithDecryption: aws.Bool(true),
+		MaxResults: aws.Int64(256),
 	})
 	if err != nil {
 		return []*ssm.Parameter{}, err
