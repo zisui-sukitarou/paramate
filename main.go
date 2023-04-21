@@ -1,48 +1,60 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
 
-	"github.com/urfave/cli/v2"
 	"github.com/mitchellh/colorstring"
+	"github.com/urfave/cli/v2"
 )
 
-func fetchParametersByPath(path string, region string) ([]*ssm.Parameter, error) {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Profile: "default",
-		Config: aws.Config{
-			Region: aws.String(region),
-		},
-	})
-	if err != nil {
-		return []*ssm.Parameter{}, err
-	}
-
-	svc := ssm.New(sess)
-	res, err := svc.GetParametersByPath(&ssm.GetParametersByPathInput{
-		Path:           aws.String(path),
-		Recursive:      aws.Bool(true),
-		WithDecryption: aws.Bool(true),
-		MaxResults: aws.Int64(256),
-	})
-	if err != nil {
-		return []*ssm.Parameter{}, err
-	}
-
-	return res.Parameters, nil
+type Secret struct {
+	Name      string `json:"name"`
+	ValueFrom string `json:"valueFrom"`
+	Value     string `json:"value"`
 }
 
-func findParamByPathFromParams(path string, params []*ssm.Parameter) (bool, *string) {
+func fetchParametersByPath(path string, region string) ([]Secret, error) {
+	ctx := context.Background()
+	var secrets []Secret
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
+	if err != nil {
+		return nil, err
+	}
+
+	withDecryption := true
+	p := ssm.NewGetParametersByPathPaginator(ssm.NewFromConfig(cfg), &ssm.GetParametersByPathInput{
+		Path:           &path,
+		MaxResults:     aws.Int32(10),
+		WithDecryption: &withDecryption,
+	})
+	for p.HasMorePages() {
+		params, err := p.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, param := range params.Parameters {
+			secrets = append(secrets, Secret{
+				Name:      strings.Replace(*param.Name, path, "", 1),
+				ValueFrom: *param.Name,
+				Value:     *param.Value,
+			})
+		}
+	}
+	return secrets, nil
+}
+
+func findParamByPathFromParams(path string, params []Secret) (bool, *string) {
 	for _, p := range params {
-		if trimPath(*p.Name) == trimPath(path) {
-			return true, p.Value
+		if trimPath(p.ValueFrom) == trimPath(path) {
+			return true, &p.Value
 		}
 	}
 	return false, nil
@@ -68,18 +80,18 @@ func compParametersAction(c *cli.Context) error {
 	}
 
 	for _, t := range tParams {
-		exists, value := findParamByPathFromParams(*t.Name, bParams)
+		exists, value := findParamByPathFromParams(t.ValueFrom, bParams)
 		if !exists {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s:\t%s", colorstring.Color("[green] [+]"), trimPath(*t.Name), colorstring.Color("[green]" + *t.Value)))
-		} else if *t.Value != *value {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s:\t%s %s", colorstring.Color("[magenta] [~]"), trimPath(*t.Name), colorstring.Color("[green]" + *t.Value), colorstring.Color("[red]" + *value)))
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s", colorstring.Color("[green] [+]"), trimPath(t.ValueFrom), colorstring.Color("[green]"+t.Value)))
+		} else if *&t.Value != *value {
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s %s", colorstring.Color("[magenta] [~]"), trimPath(t.ValueFrom), colorstring.Color("[green]"+t.Value), colorstring.Color("[red]"+*value)))
 		}
 	}
 
 	for _, b := range bParams {
-		exists, _ := findParamByPathFromParams(*b.Name, tParams)
+		exists, _ := findParamByPathFromParams(b.ValueFrom, tParams)
 		if !exists {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s:\t%s", colorstring.Color("[red] [-]"), trimPath(*b.Name), colorstring.Color("[red]" + *b.Value)))
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s", colorstring.Color("[red] [-]"), trimPath(b.ValueFrom), colorstring.Color("[red]"+b.ValueFrom)))
 		}
 	}
 
@@ -96,7 +108,7 @@ func showParametersAction(c *cli.Context) error {
 	}
 
 	for _, p := range params {
-		log.Printf("%s: %s", *p.Name, *p.Value)
+		log.Printf("%s %s", p.Name, p.Value)
 	}
 
 	return nil
@@ -112,39 +124,39 @@ func main() {
 	defaultRegion := "us-west-1"
 	app.Commands = []*cli.Command{
 		{
-			Name: "show",
-			Usage: "show parameters",
+			Name:   "show",
+			Usage:  "show parameters",
 			Action: showParametersAction,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name: "path, p",
+					Name:  "path, p",
 					Usage: "path to show like /service/development_3rd/",
 					Value: "",
 				},
 				&cli.StringFlag{
-					Name: "region, r",
+					Name:  "region, r",
 					Usage: "aws region",
 					Value: defaultRegion,
 				},
 			},
 		},
 		{
-			Name: "comp",
-			Usage: "compare parameters",
+			Name:   "comp",
+			Usage:  "compare parameters",
 			Action: compParametersAction,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name: "target, t",
+					Name:  "target, t",
 					Usage: "target path to compare like /service/development_3rd/",
 					Value: "",
 				},
 				&cli.StringFlag{
-					Name: "base, b",
+					Name:  "base, b",
 					Usage: "base path to compare like /service/development_3rd/",
 					Value: "",
 				},
 				&cli.StringFlag{
-					Name: "region, r",
+					Name:  "region, r",
 					Usage: "aws region",
 					Value: defaultRegion,
 				},
