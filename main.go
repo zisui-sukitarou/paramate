@@ -92,7 +92,7 @@ func compParametersAction(c *cli.Context) error {
 	for _, b := range bParams {
 		exists, _ := findParamByPathFromParams(b.ValueFrom, tParams)
 		if !exists {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s", colorstring.Color("[red] [-]"), trimPath(b.ValueFrom), colorstring.Color("[red]"+b.ValueFrom)))
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s", colorstring.Color("[red] [-]"), trimPath(b.ValueFrom), colorstring.Color("[red]"+b.Value)))
 		}
 	}
 
