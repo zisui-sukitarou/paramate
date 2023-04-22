@@ -80,19 +80,20 @@ func compParametersAction(c *cli.Context) error {
 		return err
 	}
 
+	fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%-10s\t%-10s", "", "Name", "Value"))
 	for _, t := range tParams {
 		exists, value := findParamByPathFromParams(t.ValueFrom, bParams)
 		if !exists {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s", colorstring.Color("[green][+]"), trimPath(t.ValueFrom), colorstring.Color("[green]"+t.Value)))
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%-10s\t%-10s\t%-10s", colorstring.Color("[green][+]"), trimPath(t.ValueFrom), colorstring.Color("[green]"+t.Value)))
 		} else if *&t.Value != *value {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s %s", colorstring.Color("[magenta][~]"), trimPath(t.ValueFrom), colorstring.Color("[green]"+t.Value), colorstring.Color("[red]"+*value)))
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%-10s\t%-10s\t%-10s\t%-10s", colorstring.Color("[magenta][~]"), trimPath(t.ValueFrom), colorstring.Color("[green]"+t.Value), colorstring.Color("[red]"+*value)))
 		}
 	}
 
 	for _, b := range bParams {
 		exists, _ := findParamByPathFromParams(b.ValueFrom, tParams)
 		if !exists {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%s\t%s", colorstring.Color("[red][-]"), trimPath(b.ValueFrom), colorstring.Color("[red]"+b.Value)))
+			fmt.Fprintln(os.Stdout, fmt.Sprintf("%-10s\t%-10s\t%-10s", colorstring.Color("[red][-]"), trimPath(b.ValueFrom), colorstring.Color("[red]"+b.Value)))
 		}
 	}
 
@@ -109,8 +110,9 @@ func showParametersAction(c *cli.Context) error {
 		return err
 	}
 
+	fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%-10s", "Name", "Value"))
 	for _, p := range params {
-		log.Printf("%s %s", p.Name, p.Value)
+		fmt.Fprintln(os.Stdout, fmt.Sprintf("%-10s\t%-10s", p.Name, p.Value))
 	}
 
 	return nil
