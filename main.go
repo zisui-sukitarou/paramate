@@ -120,12 +120,21 @@ func showParametersAction(c *cli.Context) error {
 
 func main() {
 
+	defaultRegion := "us-west-1"
+
 	app := cli.NewApp()
 	app.Version = "0.0.1"
 	app.Name = "paramstore"
 	app.Usage = "paramstore is a command line tool for AWS Parameter Store"
 	app.Action = showParametersAction
-	defaultRegion := "us-west-1"
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:    "region",
+			Aliases: []string{"r"},
+			Usage:   "aws region",
+			Value:   defaultRegion,
+		},
+	}
 	app.Commands = []*cli.Command{
 		{
 			Name:   "show",
@@ -133,14 +142,16 @@ func main() {
 			Action: showParametersAction,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:  "path, p",
-					Usage: "path to show like /service/development_3rd/",
-					Value: "/",
+					Name:    "path",
+					Aliases: []string{"p"},
+					Usage:   "path to show like /service/development_3rd/",
+					Value:   "/",
 				},
 				&cli.StringFlag{
-					Name:  "region, r",
-					Usage: "aws region",
-					Value: defaultRegion,
+					Name:    "region",
+					Aliases: []string{"r"},
+					Usage:   "aws region",
+					Value:   defaultRegion,
 				},
 			},
 		},
@@ -150,19 +161,22 @@ func main() {
 			Action: compParametersAction,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:  "target, t",
-					Usage: "target path to compare like /service/development_3rd/",
-					Value: "",
+					Name:    "target",
+					Aliases: []string{"t"},
+					Usage:   "target path to compare like /service/development_3rd/",
+					Value:   "/",
 				},
 				&cli.StringFlag{
-					Name:  "base, b",
-					Usage: "base path to compare like /service/development_3rd/",
-					Value: "",
+					Name:    "base",
+					Aliases: []string{"b"},
+					Usage:   "base path to compare like /service/development_3rd/",
+					Value:   "",
 				},
 				&cli.StringFlag{
-					Name:  "region, r",
-					Usage: "aws region",
-					Value: defaultRegion,
+					Name:    "region",
+					Aliases: []string{"r"},
+					Usage:   "aws region",
+					Value:   defaultRegion,
 				},
 			},
 		},
