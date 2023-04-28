@@ -12,13 +12,19 @@ jobs:
           env GOOS=darwin GOARCH=amd64 go build -o bin/main_darwin main.go
           env GOOS=linux GOARCH=amd64 go build -o bin/main_linux main.go
           env GOOS=windows GOARCH=amd64 go build -o bin/main_windows main.go
+      
+      - name: set tag
+        run: |
+          echo ::set-env name=TAG_NAME::v1.0.0
+          echo ::set-env name=TAG_NAME::${GITHUB_REF#refs/*/}
+    
       - name: release
-        env: |
-          TAG_NAME = $(echo $GITHUB_REF | sed -e 's/refs\/tags\///g')
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            bin/*
+            bin/main_darwin
+            bin/main_linux
+            bin/main_windows
           tag_name: ${{ env.TAG_NAME }}
           body: |
             release body
