@@ -1,0 +1,25 @@
+name: release binary
+on:
+  push:
+    tags:
+      - "v[0-9]+\\.[0-9]+\\.[0-9]+"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: build
+          go build main.go -o bin/main
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          env: |
+            TAG_NAME = $(echo $GITHUB_REF | sed -e 's/refs\/tags\///g')
+          files: |
+            bin/*
+          tag_name: ${{ env.TAG_NAME }}
+          body: |
+            release body
+          draft: false
+          prerelease: false
