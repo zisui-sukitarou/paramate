@@ -15,6 +15,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const version = "0.0.2"
+
 type Secret struct {
 	Name      string `json:"name"`
 	ValueFrom string `json:"valueFrom"`
@@ -127,6 +129,7 @@ func main() {
 	app.Name = "paramstore"
 	app.Usage = "paramstore is a command line tool for AWS Parameter Store"
 	app.Action = showParametersAction
+	app.Version = version
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
 			Name:    "region",
