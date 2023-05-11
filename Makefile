@@ -22,7 +22,7 @@ x-build: $(GOBIN)/goxz
 # 生成したバイナリをGitHubのReleaseにアップロードする (x-buildで生成したものを対象にしています)
 .PHONY: upload-binary
 upload-binary: $(GOBIN)/ghr
-	ghr "v$(VERSION)" $(X_BIN_DIR)
+	ghr -t ${GITHUB_TOKEN} "v$(VERSION)" $(X_BIN_DIR)
 
 # アプリのバージョンを出力する
 .PHONY: app-version 
