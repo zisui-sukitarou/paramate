@@ -1,37 +1,35 @@
-name: release binary
+name: Make New Release
+
 on:
   push:
+    tags:
+      - "v*.*.*"
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
-      # - uses: actions/checkout@v2
-      # - name: build
-      #   run: |
-      #     env GOOS=darwin GOARCH=amd64 go build -o bin/main_darwin main.go
-      #     env GOOS=linux GOARCH=amd64 go build -o bin/main_linux main.go
-      #     env GOOS=windows GOARCH=amd64 go build -o bin/main_windows main.go
-      
-      - name: Get Tag Name
-        id: get_tag_name
-        run: 
-          TAG_NAME=$(git describe --tags --abbrev=0)
-          echo $TAG_NAME
-          echo ::set-output name=TAG_NAME::$TAG_NAME
-      
-      - name: debug
-        run: echo ${{ steps.get_tag_name.outputs.TAG_NAME }}
-    
-      # - name: release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: |
-      #       bin/main_darwin
-      #       bin/main_linux
-      #       bin/main_windows
-      #     tag_name: ${TAG_NAME}
-      #     body: |
-      #       release body
-      #     draft: false
-      #     prerelease: false
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Cross Build & Archiving
+        run: make x-build
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+          generate_release_notes: true
+
+      - name: Upload Binary
+        run: make upload-binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
