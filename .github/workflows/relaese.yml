@@ -13,11 +13,10 @@ jobs:
       #     env GOOS=linux GOARCH=amd64 go build -o bin/main_linux main.go
       #     env GOOS=windows GOARCH=amd64 go build -o bin/main_windows main.go
       
-      - name: Get Tag name
+      - name: Get Tag Name
         id: get_tag_name
         run: 
-          echo $GITHUB_REF
-          TAG_NAME=$(echo $GITHUB_REF | sed -e 's/refs\/tags\///g')
+          TAG_NAME=$(git describe --tags --abbrev=0)
           echo $TAG_NAME
           echo ::set-output name=TAG_NAME::$TAG_NAME
       
