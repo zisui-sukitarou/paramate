@@ -48,7 +48,7 @@ func compParametersAction(cmd *cobra.Command, args []string) {
 
 // diffCmd represents the diff command
 var diffCmd = &cobra.Command{
-	Use:   "diff",
+	Use:   "diff [path1] [path2]",
 	Short: "show difference in envs of the two paths",
 	Long: `show difference in envs of the two paths`,
 	Run: compParametersAction,

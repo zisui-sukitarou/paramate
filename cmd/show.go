@@ -30,9 +30,10 @@ func showParametersAction(cmd *cobra.Command, args []string) {
 
 // showCmd represents the show command
 var showCmd = &cobra.Command{
-	Use:   "show",
+	Use:   "show [path]",
 	Short: "show envs of the path",
 	Long: "show envs of the path",
+	Args: cobra.ExactArgs(1),
 	Run: showParametersAction,
 }
 
