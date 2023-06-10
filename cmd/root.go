@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const version = "0.0.3"
+const version = "1.0.0"
 
 type Secret struct {
 	Name      string `json:"name"`
@@ -72,6 +72,7 @@ func trimPath(path string) string {
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "paramate",
+	Version: version,
 	Short: "paramstore is a command line tool for AWS Parameter Store",
 	Long: "paramstore is a command line tool for AWS Parameter Store",
 	Args: cobra.ExactArgs(1),
