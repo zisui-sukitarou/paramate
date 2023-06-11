@@ -17,17 +17,21 @@ func compParametersAction(cmd *cobra.Command, args []string) {
 	path2 := args[1]
 	region := cmd.Flag("region").Value.String()
 
+	fmt.Fprintln(os.Stdout, colorstring.Color(fmt.Sprint("[blue]loading parameters from AWS SSM Parameter Store in region:", region, " path:", path1, " ...")))
 	params1, err := fetchParametersByPath(path1, region)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
+
+	fmt.Fprintln(os.Stdout, colorstring.Color(fmt.Sprint("[blue]loading parameters from AWS SSM Parameter Store in region:", region, " path:", path2, " ...")))
 	params2, err := fetchParametersByPath(path2, region)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
 
+	fmt.Println("")
 	fmt.Fprintln(os.Stdout, fmt.Sprintf("%s\t%-10s\t%-10s", "", "Name", "Value"))
 	for _, t := range params1 {
 		exists, value := findParamByPathFromParams(t.ValueFrom, params2)
