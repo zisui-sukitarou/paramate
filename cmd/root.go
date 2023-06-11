@@ -75,8 +75,6 @@ var rootCmd = &cobra.Command{
 	Version: version,
 	Short: "paramstore is a command line tool for AWS Parameter Store",
 	Long: "paramstore is a command line tool for AWS Parameter Store",
-	Args: cobra.ExactArgs(1),
-	Run: showParametersAction,
 }
 
 
