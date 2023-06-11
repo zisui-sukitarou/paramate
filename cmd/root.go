@@ -45,7 +45,7 @@ func fetchParametersByPath(path string, region string) ([]Secret, error) {
 		}
 		for _, param := range params.Parameters {
 			secrets = append(secrets, Secret{
-				Name:      strings.Replace(*param.Name, path, "", 1),
+				Name:      strings.Replace(*param.Name, path+"/", "", 1),
 				ValueFrom: *param.Name,
 				Value:     *param.Value,
 			})
