@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const version = "1.0.0"
+const version = "1.0.1"
 
 type Secret struct {
 	Name      string `json:"name"`
